@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLRG Weibersbrunn - Lakefleisch Reservierung 2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dlrg: {
+                            yellow: '#FFED00',
+                            red: '#E30613',
+                            darkred: '#B0000B',
+                            dark: '#1A1A1A'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- Header -->
+    <header class="bg-dlrg-yellow shadow-md border-b-4 border-dlrg-red sticky top-0 z-40">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <img src="https://share.google/fKZZiPbX7KSd8DCHV" 
+                     alt="DLRG Logo" 
+                     class="h-12 w-auto object-contain"
+                     onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/DLRG_Logo.svg/512px-DLRG_Logo.svg.png';" />
+                <div>
+                    <h1 class="font-extrabold text-lg sm:text-xl text-black leading-tight">DLRG Weibersbrunn</h1>
+                    <p class="text-xs font-semibold text-slate-800">Lakefleisch-Fest • 28.12.2026</p>
+                </div>
+            </div>
+            
+            <button id="toggleAdminBtn" onclick="openAdminAuth()" class="flex items-center space-x-1 bg-dlrg-red hover:bg-dlrg-darkred text-white text-xs font-bold py-2 px-3 rounded-lg shadow transition">
+                <span>🔒 Helfer-Area</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-3xl mx-auto w-full p-4 flex-grow">
+
+        <!-- GÄSTE VIEW -->
+        <div id="guestView" class="space-y-6">
+
+            <!-- Welcome Banner -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-start space-x-4">
+                    <div class="p-3 bg-red-100 text-dlrg-red rounded-xl hidden sm:block text-2xl">
+                        🔥
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 mb-1">Lakefleisch-Vorbestellung</h2>
+                        <p class="text-slate-600 text-sm">
+                            Sichern Sie sich Ihre Portionen für unser traditionelles Fest am <strong>28. Dezember 2026</strong>. 
+                            Wählen Sie einfach Ihre Wunsch-Uhrzeit aus. Bezahlt wird direkt bei der Abholung vor Ort!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bestätigungsmeldung -->
+            <div id="confirmationCard" class="hidden bg-green-50 border-2 border-green-500 rounded-2xl p-6 shadow-md text-center space-y-3">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 text-green-600 rounded-full mb-1 text-2xl font-bold">
+                    ✓
+                </div>
+                <h3 class="text-2xl font-bold text-green-900">Reservierung erfolgreich!</h3>
+                <p class="text-slate-700 text-sm">Vielen Dank für Ihre Bestellung. Bitte merken Sie sich Ihren Abhol-Code:</p>
+                <div class="inline-block bg-white border border-green-300 rounded-xl px-6 py-3 shadow-inner">
+                    <span class="text-xs text-slate-500 uppercase tracking-widest block font-semibold">Abhol-Code</span>
+                    <span id="resCode" class="text-3xl font-black text-dlrg-red tracking-wider">#VF-000</span>
+                </div>
+                <div id="resSummary" class="text-slate-700 text-sm font-medium pt-2"></div>
+                <button onclick="resetOrderForm()" class="mt-4 inline-flex items-center text-xs font-semibold text-slate-500 hover:text-slate-800 underline">
+                    Weitere Bestellung aufgeben
+                </button>
+            </div>
+
+            <!-- Reservierungs-Formular -->
+            <form id="bookingForm" onsubmit="handleBookingSubmit(event)" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
+
+                <!-- 1. Name & Telefon -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">
+                        👤 1. Kontaktdaten
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Ihr Name *</label>
+                            <input type="text" id="custName" required placeholder="z. B. Maria Muster" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-dlrg-red focus:border-dlrg-red outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Telefonnummer (für Rückfragen)</label>
+                            <input type="tel" id="custPhone" placeholder="0170 1234567" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-dlrg-red focus:border-dlrg-red outline-none text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- 2. Uhrzeit Auswahl -->
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">
+                        🕒 2. Uhrzeit wählen
+                    </h3>
+                    <div id="timeSlotsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <!-- Wird dynamisch befüllt -->
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- 3. Portionen Anzahl -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">
+                        🍖 3. Anzahl Portionen
+                    </h3>
+                    
+                    <div class="bg-amber-50 rounded-2xl p-4 border border-amber-200 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-slate-900 text-lg">Lakefleisch</div>
+                            <div class="text-xs text-slate-600">Deftiges Lakefleisch im Glutbett zubereitet</div>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
+                            <button type="button" onclick="changeQuantity(-1)" class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-lg active:scale-95 transition">-</button>
+                            <span id="portionCount" class="w-8 text-center font-bold text-xl text-slate-900">1</span>
+                            <button type="button" onclick="changeQuantity(1)" class="w-10 h-10 rounded-lg bg-dlrg-yellow hover:bg-yellow-400 text-slate-900 font-bold flex items-center justify-center text-lg active:scale-95 transition">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitBtn" class="w-full bg-dlrg-red hover:bg-dlrg-darkred text-white font-bold py-4 px-6 rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-base">
+                    <span>Verbindlich Reservieren</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- HELFER VIEW (ADMIN) -->
+        <div id="adminView" class="hidden space-y-6">
+            
+            <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-md flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-dlrg-red rounded-xl font-bold">🛡️</div>
+                    <div>
+                        <h2 class="text-lg font-bold">Helfer-Verwaltung</h2>
+                        <p class="text-xs text-slate-400">Übersicht & Kontingentsteuerung</p>
+                    </div>
+                </div>
+                <button onclick="lockAdmin()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg flex items-center gap-1">
+                    🔒 Abmelden
+                </button>
+            </div>
+
+            <!-- Gesamtübersicht Metriken -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Portionen Gesamt</span>
+                    <div id="metricTotalPortions" class="text-2xl font-black text-dlrg-red mt-1">0</div>
+                    <span class="text-[10px] text-slate-500">bestellte Portionen</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Gesamtauslastung</span>
+                    <div id="metricCapacityPct" class="text-2xl font-black text-slate-800 mt-1">0%</div>
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div id="metricCapacityBar" class="bg-dlrg-red h-1.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Offen / In Arbeit</span>
+                    <div id="metricOpenPortions" class="text-2xl font-black text-amber-600 mt-1">0</div>
+                    <span class="text-[10px] text-slate-500">noch auszugeben</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Bereits Abgeholt</span>
+                    <div id="metricDonePortions" class="text-2xl font-black text-green-600 mt-1">0</div>
+                    <span class="text-[10px] text-slate-500">fertig übergeben</span>
+                </div>
+            </div>
+
+            <!-- Kontingent Übersicht -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                        📊 Auslastung nach Uhrzeit
+                    </h3>
+                    <button onclick="toggleCapEditor()" class="text-xs font-bold text-dlrg-red hover:underline">
+                        Max-Limits anpassen
+                    </button>
+                </div>
+                
+                <div id="adminCapacityList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <!-- Auslastung pro Slot -->
+                </div>
+
+                <!-- Cap Editor -->
+                <div id="capEditor" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 mt-4 space-y-3">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase">Maximal-Kapazitäten ändern (pro Uhrzeit):</h4>
+                    <div id="capInputs" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                    <button onclick="saveCapacities()" class="bg-slate-900 text-white text-xs font-bold py-2 px-4 rounded-lg">Speichern</button>
+                </div>
+            </div>
+
+            <!-- Bestellungen Tabelle -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                        📋 Alle Reservierungen
+                    </h3>
+                    <div class="flex items-center space-x-2">
+                        <select id="filterTime" onchange="renderAdminOrders()" class="text-xs bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 font-medium outline-none">
+                            <option value="ALL">Alle Zeiten</option>
+                        </select>
+                        <button onclick="exportCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 border border-slate-300">
+                            📥 CSV Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-100 text-slate-700 font-bold uppercase">
+                            <tr>
+                                <th class="p-3 rounded-l-lg">Code</th>
+                                <th class="p-3">Uhrzeit</th>
+                                <th class="p-3">Name</th>
+                                <th class="p-3">Telefon</th>
+                                <th class="p-3 text-center">Portionen</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 rounded-r-lg text-right">Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminOrdersTable" class="divide-y divide-slate-100">
+                            <!-- Dynamisch -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="bg-red-50 rounded-2xl p-4 border border-red-200 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold text-red-800 block">Datenbank zurücksetzen</span>
+                    <span class="text-[11px] text-red-600">Löscht alle aktuell gespeicherten Bestellungen unwiderruflich.</span>
+                </div>
+                <button onclick="clearAllData()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow">
+                    Alle Testdaten löschen
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+        <p>© 2026 DLRG Weibersbrunn e.V. • Lakefleisch-Reservierungssystem</p>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl space-y-4">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-dlrg-yellow rounded-full flex items-center justify-center mx-auto mb-2 text-slate-900 font-bold text-xl">
+                    🔒
+                </div>
+                <h3 class="font-bold text-slate-900">Helfer-Login</h3>
+                <p class="text-xs text-slate-500">Bitte Passwort für Helfer-Area eingeben</p>
+            </div>
+            <div>
+                <input type="password" id="adminPasswordInput" placeholder="Passwort..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-center font-mono outline-none focus:ring-2 focus:ring-dlrg-red">
+                <p id="authError" class="text-xs text-red-500 font-bold text-center mt-1 hidden">Falsches Passwort!</p>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="closeAuthModal()" class="w-1/2 bg-slate-100 text-slate-700 py-2 rounded-xl font-bold text-xs">Abbrechen</button>
+                <button onclick="checkAdminPassword()" class="w-1/2 bg-dlrg-red text-white py-2 rounded-xl font-bold text-xs shadow">Einloggen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        const TIME_SLOTS = ["12:00", "13:00", "14:15", "15:30", "17:00", "18:30"];
+        let capacities = JSON.parse(localStorage.getItem('dlrg_lakefleisch_caps')) || {
+            "12:00": 30, "13:00": 30, "14:15": 25, "15:30": 25, "17:00": 30, "18:30": 30
+        };
+        
+        let storedOrders = localStorage.getItem('dlrg_lakefleisch_orders');
+        let orders = storedOrders !== null ? JSON.parse(storedOrders) : [];
+        let isAdminLoggedIn = false;
+        let selectedTime = TIME_SLOTS[0];
+        let currentQuantity = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTimeSlots();
+            populateFilterOptions();
+        });
+
+        function renderTimeSlots() {
+            const grid = document.getElementById('timeSlotsGrid');
+            grid.innerHTML = '';
+
+            TIME_SLOTS.forEach(time => {
+                const booked = getBookedCountForTime(time);
+                const max = capacities[time] || 30;
+                const available = max - booked;
+                const isFull = available <= 0;
+                const isSelected = selectedTime === time;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.disabled = isFull;
+                btn.onclick = () => selectTimeSlot(time);
+                
+                let cardStyle = "border-slate-200 bg-white hover:border-dlrg-red";
+                if (isSelected) cardStyle = "border-dlrg-red bg-red-50/50 ring-2 ring-dlrg-red";
+                if (isFull) cardStyle = "border-slate-200 bg-slate-100 opacity-50 cursor-not-allowed";
+
+                btn.className = `p-3 rounded-xl border text-left transition relative ${cardStyle}`;
+                btn.innerHTML = `
+                    <div class="text-base font-extrabold ${isSelected ? 'text-dlrg-red' : 'text-slate-800'}">${time} Uhr</div>
+                    <div class="text-[11px] ${isFull ? 'text-red-500 font-bold' : 'text-slate-500'}">
+                        ${isFull ? 'Ausgebucht' : `${available} Portionen frei`}
+                    </div>
+                `;
+                grid.appendChild(btn);
+            });
+
+            if (capacities[selectedTime] && (capacities[selectedTime] - getBookedCountForTime(selectedTime)) <= 0) {
+                const firstAvailable = TIME_SLOTS.find(t => (capacities[t] - getBookedCountForTime(t)) > 0);
+                if (firstAvailable) selectedTime = firstAvailable;
+            }
+        }
+
+        function selectTimeSlot(time) {
+            selectedTime = time;
+            renderTimeSlots();
+        }
+
+        function getBookedCountForTime(time) {
+            return orders
+                .filter(o => o.time === time && o.status !== 'Storniert')
+                .reduce((sum, o) => sum + o.count, 0);
+        }
+
+        function changeQuantity(delta) {
+            const maxAvailable = (capacities[selectedTime] || 30) - getBookedCountForTime(selectedTime);
+            const newQty = currentQuantity + delta;
+            
+            if (newQty >= 1 && newQty <= Math.min(10, maxAvailable)) {
+                currentQuantity = newQty;
+                document.getElementById('portionCount').innerText = currentQuantity;
+            }
+        }
+
+        function handleBookingSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            
+            if (!name) return;
+
+            const code = `#VF-${Math.floor(100 + Math.random() * 900)}`;
+            const newOrder = {
+                id: code,
+                name: name,
+                phone: phone || '-',
+                time: selectedTime,
+                count: currentQuantity,
+                status: 'Offen',
+                timestamp: Date.now()
+            };
+
+            orders.push(newOrder);
+            saveOrders();
+
+            document.getElementById('bookingForm').classList.add('hidden');
+            document.getElementById('resCode').innerText = code;
+            document.getElementById('resSummary').innerHTML = `
+                <strong>${name}</strong> • ${currentQuantity} Portion(en) Lakefleisch um <strong>${selectedTime} Uhr</strong>
+            `;
+            document.getElementById('confirmationCard').classList.remove('hidden');
+        }
+
+        function resetOrderForm() {
+            document.getElementById('custName').value = '';
+            document.getElementById('custPhone').value = '';
+            currentQuantity = 1;
+            document.getElementById('portionCount').innerText = '1';
+            document.getElementById('confirmationCard').classList.add('hidden');
+            document.getElementById('bookingForm').classList.remove('hidden');
+            renderTimeSlots();
+        }
+
+        function saveOrders() {
+            localStorage.setItem('dlrg_lakefleisch_orders', JSON.stringify(orders));
+            if (isAdminLoggedIn) renderAdminDashboard();
+        }
+
+        function openAdminAuth() {
+            if (isAdminLoggedIn) {
+                toggleView(true);
+            } else {
+                document.getElementById('authModal').classList.remove('hidden');
+                document.getElementById('adminPasswordInput').value = '';
+                document.getElementById('authError').classList.add('hidden');
+                document.getElementById('adminPasswordInput').focus();
+            }
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function checkAdminPassword() {
+            const pass = document.getElementById('adminPasswordInput').value;
+            if (pass === 'dlrg') {
+                isAdminLoggedIn = true;
+                closeAuthModal();
+                toggleView(true);
+            } else {
+                document.getElementById('authError').classList.remove('hidden');
+            }
+        }
+
+        function lockAdmin() {
+            isAdminLoggedIn = false;
+            toggleView(false);
+        }
+
+        function toggleView(showAdmin) {
+            const guestView = document.getElementById('guestView');
+            const adminView = document.getElementById('adminView');
+            const btnText = document.getElementById('toggleAdminBtn');
+
+            if (showAdmin) {
+                guestView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                btnText.innerHTML = '<span>👥 Gäste-Ansicht</span>';
+                renderAdminDashboard();
+            } else {
+                adminView.classList.add('hidden');
+                guestView.classList.remove('hidden');
+                btnText.innerHTML = '<span>🔒 Helfer-Area</span>';
+                renderTimeSlots();
+            }
+        }
+
+        function renderAdminDashboard() {
+            renderAdminMetrics();
+            renderAdminCapacities();
+            renderAdminOrders();
+        }
+
+        function renderAdminMetrics() {
+            const activeOrders = orders.filter(o => o.status !== 'Storniert');
+            const totalPortions = activeOrders.reduce((sum, o) => sum + o.count, 0);
+            
+            let totalCap = 0;
+            TIME_SLOTS.forEach(t => totalCap += (capacities[t] || 30));
+
+            const pct = totalCap > 0 ? Math.round((totalPortions / totalCap) * 100) : 0;
+            
+            const openPortions = activeOrders
+                .filter(o => o.status === 'Offen' || o.status === 'In Zubereitung' || o.status === 'Abholbereit')
+                .reduce((sum, o) => sum + o.count, 0);
+
+            const donePortions = activeOrders
+                .filter(o => o.status === 'Abgeholt')
+                .reduce((sum, o) => sum + o.count, 0);
+
+            document.getElementById('metricTotalPortions').innerText = totalPortions;
+            document.getElementById('metricCapacityPct').innerText = `${pct}%`;
+            document.getElementById('metricCapacityBar').style.width = `${Math.min(100, pct)}%`;
+            document.getElementById('metricOpenPortions').innerText = openPortions;
+            document.getElementById('metricDonePortions').innerText = donePortions;
+        }
+
+        function renderAdminCapacities() {
+            const list = document.getElementById('adminCapacityList');
+            list.innerHTML = '';
+
+            TIME_SLOTS.forEach(time => {
+                const booked = getBookedCountForTime(time);
+                const max = capacities[time] || 30;
+                const pct = Math.min(100, Math.round((booked / max) * 100));
+
+                const item = document.createElement('div');
+                item.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs";
+                item.innerHTML = `
+                    <div class="flex justify-between font-bold mb-1">
+                        <span>${time} Uhr</span>
+                        <span class="${pct >= 100 ? 'text-red-600' : 'text-slate-600'}">${booked} / ${max} Port. (${pct}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div class="bg-dlrg-red h-2 rounded-full" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function toggleCapEditor() {
+            const editor = document.getElementById('capEditor');
+            const container = document.getElementById('capInputs');
+            editor.classList.toggle('hidden');
+
+            if (!editor.classList.contains('hidden')) {
+                container.innerHTML = '';
+                TIME_SLOTS.forEach(t => {
+                    container.innerHTML += `
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500">${t} Uhr</label>
+                            <input type="number" id="capInput_${t}" value="${capacities[t] || 30}" class="w-full px-2 py-1 text-xs border rounded">
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function saveCapacities() {
+            TIME_SLOTS.forEach(t => {
+                const val = parseInt(document.getElementById(`capInput_${t}`).value);
+                if (!isNaN(val) && val >= 0) capacities[t] = val;
+            });
+            localStorage.setItem('dlrg_lakefleisch_caps', JSON.stringify(capacities));
+            document.getElementById('capEditor').classList.add('hidden');
+            renderAdminDashboard();
+        }
+
+        function populateFilterOptions() {
+            const select = document.getElementById('filterTime');
+            TIME_SLOTS.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.innerText = `${t} Uhr`;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderAdminOrders() {
+            const tbody = document.getElementById('adminOrdersTable');
+            const filter = document.getElementById('filterTime').value;
+            tbody.innerHTML = '';
+
+            const filtered = orders.filter(o => filter === 'ALL' || o.time === filter);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-slate-400">Keine Bestellungen vorhanden.</td></tr>`;
+                return;
+            }
+
+            filtered.sort((a,b) => a.time.localeCompare(b.time)).forEach(o => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+
+                let statusBadge = "bg-slate-100 text-slate-600";
+                if (o.status === 'Offen') statusBadge = "bg-amber-100 text-amber-800";
+                if (o.status === 'Abholbereit') statusBadge = "bg-blue-100 text-blue-800";
+                if (o.status === 'Abgeholt') statusBadge = "bg-green-100 text-green-800";
+                if (o.status === 'Storniert') statusBadge = "bg-red-100 text-red-700 line-through";
+
+                tr.innerHTML = `
+                    <td class="p-3 font-mono font-bold text-slate-900">${o.id}</td>
+                    <td class="p-3 font-bold">${o.time} Uhr</td>
+                    <td class="p-3 font-medium text-slate-800">${o.name}</td>
+                    <td class="p-3">${o.phone}</td>
+                    <td class="p-3 text-center font-bold text-slate-900">${o.count}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusBadge}">${o.status}</span>
+                    </td>
+                    <td class="p-3 text-right space-x-1">
+                        <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-[11px] border border-slate-200 rounded px-1.5 py-1 bg-white outline-none">
+                            <option value="Offen" ${o.status==='Offen'?'selected':''}>Offen</option>
+                            <option value="Abholbereit" ${o.status==='Abholbereit'?'selected':''}>Abholbereit</option>
+                            <option value="Abgeholt" ${o.status==='Abgeholt'?'selected':''}>Abgeholt</option>
+                            <option value="Storniert" ${o.status==='Storniert'?'selected':''}>Stornieren</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateOrderStatus(id, newStatus) {
+            const idx = orders.findIndex(o => o.id === id);
+            if (idx !== -1) {
+                orders[idx].status = newStatus;
+                saveOrders();
+            }
+        }
+
+        function exportCSV() {
+            let csv = "Code;Uhrzeit;Name;Telefon;Portionen;Status\n";
+            orders.forEach(o => {
+                csv += `${o.id};${o.time};"${o.name}";"${o.phone}";${o.count};${o.status}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "Lakefleisch_Reservierungen_2026.csv";
+            link.click();
+        }
+
+        function clearAllData() {
+            if (confirm("Möchten Sie wirklich ALLE Bestellungen unwiderruflich löschen?")) {
+                orders = [];
+                saveOrders();
+                renderAdminDashboard();
+            }
+        }
+    </script>
+</body>
+</html>
