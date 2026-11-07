@@ -29,10 +29,9 @@
     <header class="bg-dlrg-yellow shadow-md border-b-4 border-dlrg-red sticky top-0 z-40">
         <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <img src="https://share.google/fKZZiPbX7KSd8DCHV" 
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/DLRG_Logo.svg/512px-DLRG_Logo.svg.png" 
                      alt="DLRG Logo" 
-                     class="h-12 w-auto object-contain"
-                     onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/DLRG_Logo.svg/512px-DLRG_Logo.svg.png';" />
+                     class="h-12 w-auto object-contain" />
                 <div>
                     <h1 class="font-extrabold text-lg sm:text-xl text-black leading-tight">DLRG Weibersbrunn</h1>
                     <p class="text-xs font-semibold text-slate-800">Lakefleisch-Fest • 28.12.2026</p>
@@ -112,7 +111,7 @@
                         🕒 2. Uhrzeit wählen
                     </h3>
                     <div id="timeSlotsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        <!-- Wird dynamisch befüllt -->
+                        <!-- Dynamisch -->
                     </div>
                 </div>
 
@@ -152,7 +151,7 @@
                     <div class="p-3 bg-dlrg-red rounded-xl font-bold">🛡️</div>
                     <div>
                         <h2 class="text-lg font-bold">Helfer-Verwaltung</h2>
-                        <p class="text-xs text-slate-400">Übersicht & Kontingentsteuerung</p>
+                        <p class="text-xs text-slate-400">Live-Synchronisation aktiv</p>
                     </div>
                 </div>
                 <button onclick="lockAdmin()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg flex items-center gap-1">
@@ -197,9 +196,7 @@
                     </button>
                 </div>
                 
-                <div id="adminCapacityList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    <!-- Auslastung pro Slot -->
-                </div>
+                <div id="adminCapacityList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
 
                 <!-- Cap Editor -->
                 <div id="capEditor" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 mt-4 space-y-3">
@@ -238,9 +235,7 @@
                                 <th class="p-3 rounded-r-lg text-right">Aktion</th>
                             </tr>
                         </thead>
-                        <tbody id="adminOrdersTable" class="divide-y divide-slate-100">
-                            <!-- Dynamisch -->
-                        </tbody>
+                        <tbody id="adminOrdersTable" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -252,7 +247,7 @@
                     <span class="text-[11px] text-red-600">Löscht alle aktuell gespeicherten Bestellungen unwiderruflich.</span>
                 </div>
                 <button onclick="clearAllData()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow">
-                    Alle Testdaten löschen
+                    Alle Daten löschen
                 </button>
             </div>
 
@@ -288,21 +283,74 @@
 
     <!-- Application Script -->
     <script>
+        // FIREBASE CONFIG - TRAGEN SIE HIER IHRE FIREBASE-URL EIN!
+        const FIREBASE_URL = "https://dlrglaki2026-default-rtdb.europe-west1.firebasedatabase.app/";
+
         const TIME_SLOTS = ["12:00", "13:00", "14:15", "15:30", "17:00", "18:30"];
-        let capacities = JSON.parse(localStorage.getItem('dlrg_lakefleisch_caps')) || {
-            "12:00": 30, "13:00": 30, "14:15": 25, "15:30": 25, "17:00": 30, "18:30": 30
-        };
-        
-        let storedOrders = localStorage.getItem('dlrg_lakefleisch_orders');
-        let orders = storedOrders !== null ? JSON.parse(storedOrders) : [];
+        let capacities = { "12:00": 30, "13:00": 30, "14:15": 25, "15:30": 25, "17:00": 30, "18:30": 30 };
+        let orders = [];
         let isAdminLoggedIn = false;
         let selectedTime = TIME_SLOTS[0];
         let currentQuantity = 1;
 
         document.addEventListener('DOMContentLoaded', () => {
-            renderTimeSlots();
+            fetchDataFromFirebase();
             populateFilterOptions();
+            // Poll Data alle 5 Sekunden für automatische Live-Updates
+            setInterval(fetchDataFromFirebase, 5000);
         });
+
+        // DATENBANK-VERBINDUNG (Laden)
+        async function fetchDataFromFirebase() {
+            try {
+                const resOrders = await fetch(`${FIREBASE_URL}/orders.json`);
+                const dataOrders = await resOrders.json();
+                
+                orders = [];
+                if (dataOrders) {
+                    Object.keys(dataOrders).forEach(key => {
+                        orders.push({ firebaseKey: key, ...dataOrders[key] });
+                    });
+                }
+
+                const resCaps = await fetch(`${FIREBASE_URL}/capacities.json`);
+                const dataCaps = await resCaps.json();
+                if (dataCaps) capacities = dataCaps;
+
+                renderTimeSlots();
+                if (isAdminLoggedIn) renderAdminDashboard();
+            } catch (err) {
+                console.error("Fehler beim Laden der Live-Daten:", err);
+            }
+        }
+
+        // DATENBANK-VERBINDUNG (Neue Bestellung)
+        async function saveNewOrderToFirebase(newOrder) {
+            try {
+                await fetch(`${FIREBASE_URL}/orders.json`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newOrder)
+                });
+                await fetchDataFromFirebase();
+            } catch (err) {
+                alert("Fehler beim Speichern der Bestellung! Bitte erneut versuchen.");
+            }
+        }
+
+        // DATENBANK-VERBINDUNG (Status Update)
+        async function updateStatusInFirebase(firebaseKey, newStatus) {
+            try {
+                await fetch(`${FIREBASE_URL}/orders/${firebaseKey}.json`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                await fetchDataFromFirebase();
+            } catch (err) {
+                console.error("Fehler beim Aktualisieren:", err);
+            }
+        }
 
         function renderTimeSlots() {
             const grid = document.getElementById('timeSlotsGrid');
@@ -333,11 +381,6 @@
                 `;
                 grid.appendChild(btn);
             });
-
-            if (capacities[selectedTime] && (capacities[selectedTime] - getBookedCountForTime(selectedTime)) <= 0) {
-                const firstAvailable = TIME_SLOTS.find(t => (capacities[t] - getBookedCountForTime(t)) > 0);
-                if (firstAvailable) selectedTime = firstAvailable;
-            }
         }
 
         function selectTimeSlot(time) {
@@ -361,7 +404,7 @@
             }
         }
 
-        function handleBookingSubmit(e) {
+        async function handleBookingSubmit(e) {
             e.preventDefault();
             const name = document.getElementById('custName').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
@@ -379,8 +422,7 @@
                 timestamp: Date.now()
             };
 
-            orders.push(newOrder);
-            saveOrders();
+            await saveNewOrderToFirebase(newOrder);
 
             document.getElementById('bookingForm').classList.add('hidden');
             document.getElementById('resCode').innerText = code;
@@ -398,11 +440,6 @@
             document.getElementById('confirmationCard').classList.add('hidden');
             document.getElementById('bookingForm').classList.remove('hidden');
             renderTimeSlots();
-        }
-
-        function saveOrders() {
-            localStorage.setItem('dlrg_lakefleisch_orders', JSON.stringify(orders));
-            if (isAdminLoggedIn) renderAdminDashboard();
         }
 
         function openAdminAuth() {
@@ -470,7 +507,7 @@
             const pct = totalCap > 0 ? Math.round((totalPortions / totalCap) * 100) : 0;
             
             const openPortions = activeOrders
-                .filter(o => o.status === 'Offen' || o.status === 'In Zubereitung' || o.status === 'Abholbereit')
+                .filter(o => o.status === 'Offen' || o.status === 'Abholbereit')
                 .reduce((sum, o) => sum + o.count, 0);
 
             const donePortions = activeOrders
@@ -526,12 +563,18 @@
             }
         }
 
-        function saveCapacities() {
+        async function saveCapacities() {
             TIME_SLOTS.forEach(t => {
                 const val = parseInt(document.getElementById(`capInput_${t}`).value);
                 if (!isNaN(val) && val >= 0) capacities[t] = val;
             });
-            localStorage.setItem('dlrg_lakefleisch_caps', JSON.stringify(capacities));
+            
+            await fetch(`${FIREBASE_URL}/capacities.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(capacities)
+            });
+
             document.getElementById('capEditor').classList.add('hidden');
             renderAdminDashboard();
         }
@@ -578,7 +621,7 @@
                         <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusBadge}">${o.status}</span>
                     </td>
                     <td class="p-3 text-right space-x-1">
-                        <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-[11px] border border-slate-200 rounded px-1.5 py-1 bg-white outline-none">
+                        <select onchange="updateStatusInFirebase('${o.firebaseKey}', this.value)" class="text-[11px] border border-slate-200 rounded px-1.5 py-1 bg-white outline-none">
                             <option value="Offen" ${o.status==='Offen'?'selected':''}>Offen</option>
                             <option value="Abholbereit" ${o.status==='Abholbereit'?'selected':''}>Abholbereit</option>
                             <option value="Abgeholt" ${o.status==='Abgeholt'?'selected':''}>Abgeholt</option>
@@ -590,31 +633,10 @@
             });
         }
 
-        function updateOrderStatus(id, newStatus) {
-            const idx = orders.findIndex(o => o.id === id);
-            if (idx !== -1) {
-                orders[idx].status = newStatus;
-                saveOrders();
-            }
-        }
-
-        function exportCSV() {
-            let csv = "Code;Uhrzeit;Name;Telefon;Portionen;Status\n";
-            orders.forEach(o => {
-                csv += `${o.id};${o.time};"${o.name}";"${o.phone}";${o.count};${o.status}\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "Lakefleisch_Reservierungen_2026.csv";
-            link.click();
-        }
-
-        function clearAllData() {
-            if (confirm("Möchten Sie wirklich ALLE Bestellungen unwiderruflich löschen?")) {
-                orders = [];
-                saveOrders();
-                renderAdminDashboard();
+        async function clearAllData() {
+            if (confirm("Möchten Sie wirklich ALLE Bestellungen aus der Online-Datenbank löschen?")) {
+                await fetch(`${FIREBASE_URL}/orders.json`, { method: 'DELETE' });
+                await fetchDataFromFirebase();
             }
         }
     </script>
