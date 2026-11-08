@@ -69,7 +69,7 @@
                 </div>
             </div>
 
-            <!-- Bestätigungsmeldung -->
+            <!-- Bestätigungsmeldung (Ohne Abholcode) -->
             <div id="confirmationCard" class="hidden bg-green-50 border-2 border-green-500 rounded-2xl p-6 shadow-md text-center space-y-3">
                 <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 text-green-600 rounded-full mb-1 text-2xl font-bold">
                     ✓
@@ -156,64 +156,3 @@
                         <h2 class="text-lg font-bold">Helfer-Verwaltung</h2>
                         <p class="text-xs text-slate-400">Live-Synchronisation aktiv</p>
                     </div>
-                </div>
-                <button onclick="lockAdmin()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg flex items-center gap-1">
-                    🔒 Abmelden
-                </button>
-            </div>
-
-            <!-- Gesamtübersicht Metriken -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Portionen Gesamt</span>
-                    <div id="metricTotalPortions" class="text-2xl font-black text-dlrg-red mt-1">0</div>
-                    <span class="text-[10px] text-slate-500">bestellte Portionen</span>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Gesamtauslastung</span>
-                    <div id="metricCapacityPct" class="text-2xl font-black text-slate-800 mt-1">0%</div>
-                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                        <div id="metricCapacityBar" class="bg-dlrg-red h-1.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Offen / In Arbeit</span>
-                    <div id="metricOpenPortions" class="text-2xl font-black text-amber-600 mt-1">0</div>
-                    <span class="text-[10px] text-slate-500">noch auszugeben</span>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Bereits Abgeholt</span>
-                    <div id="metricDonePortions" class="text-2xl font-black text-green-600 mt-1">0</div>
-                    <span class="text-[10px] text-slate-500">fertig übergeben</span>
-                </div>
-            </div>
-
-            <!-- Kontingent Übersicht -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="font-bold text-slate-900 flex items-center gap-2">
-                        📊 Auslastung nach Uhrzeit
-                    </h3>
-                    <button onclick="toggleCapEditor()" class="text-xs font-bold text-dlrg-red hover:underline">
-                        Max-Limits anpassen
-                    </button>
-                </div>
-                
-                <div id="adminCapacityList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
-
-                <!-- Cap Editor -->
-                <div id="capEditor" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 mt-4 space-y-3">
-                    <h4 class="text-xs font-bold text-slate-700 uppercase">Maximal-Kapazitäten ändern (pro Uhrzeit):</h4>
-                    <div id="capInputs" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
-                    <button onclick="saveCapacities()" class="bg-slate-900 text-white text-xs font-bold py-2 px-4 rounded-lg">Speichern</button>
-                </div>
-            </div>
-
-            <!-- Bestellungen Tabelle -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <h3 class="font-bold text-slate-900 flex items-center gap-2">
-                        📋 Alle Reservierungen (Direkt bearbeitbar)
-                    </h3>
-                    <div class="flex items-center space-x-2">
-                        <select id="filterTime" onchange="renderAdminOrders()" class="text-xs bg-slate-100
