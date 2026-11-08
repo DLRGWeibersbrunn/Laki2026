@@ -323,8 +323,10 @@
 
         async function saveNewOrderToFirebase(newOrder) {
             try {
-                const response = await fetch(`${FIREBASE_URL}/orders.json`, {
-                    method: 'POST',
+                // Wir nutzen eine saubere, eindeutige ID basierend auf dem Zeitstempel
+                const uniqueId = 'order_' + Date.now();
+                const response = await fetch(`${FIREBASE_URL}/orders/${uniqueId}.json`, {
+                    method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(newOrder)
                 });
@@ -347,7 +349,7 @@
                 alert("Änderungen erfolgreich gespeichert!");
             } catch (err) {
                 console.error("Fehler beim Aktualisieren:", err);
-                alert("Speichern fehlgeschlagen! Bitte prüfen Sie die Firebase-Sicherheitsregeln.");
+                alert("Speichern fehlgeschlagen! Bitte prüfen Sie die Firebase-Verbindung.");
             }
         }
 
