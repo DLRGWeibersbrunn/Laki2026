@@ -323,7 +323,6 @@
 
         async function saveNewOrderToFirebase(newOrder) {
             try {
-                // Wir nutzen eine saubere, eindeutige ID basierend auf dem Zeitstempel
                 const uniqueId = 'order_' + Date.now();
                 const response = await fetch(`${FIREBASE_URL}/orders/${uniqueId}.json`, {
                     method: 'PUT',
@@ -671,12 +670,23 @@
         }
 
         async function saveEditedOrder(firebaseKey) {
+            const timeSelect = document.getElementById(`edit_time_${firebaseKey}`);
+            const nameInput = document.getElementById(`edit_name_${firebaseKey}`);
+            const phoneInput = document.getElementById(`edit_phone_${firebaseKey}`);
+            const countInput = document.getElementById(`edit_count_${firebaseKey}`);
+            const statusSelect = document.getElementById(`edit_status_${firebaseKey}`);
+
+            if (!timeSelect || !nameInput || !phoneInput || !countInput || !statusSelect) {
+                alert("Fehler: Konnte die Formulardaten nicht auslesen.");
+                return;
+            }
+
             const updatedData = {
-                time: document.getElementById(`edit_time_${firebaseKey}`).value,
-                name: document.getElementById(`edit_name_${firebaseKey}`).value.trim(),
-                phone: document.getElementById(`edit_phone_${firebaseKey}`).value.trim(),
-                count: parseInt(document.getElementById(`edit_count_${firebaseKey}`).value) || 1,
-                status: document.getElementById(`edit_status_${firebaseKey}`).value
+                time: timeSelect.value,
+                name: nameInput.value.trim(),
+                phone: phoneInput.value.trim(),
+                count: parseInt(countInput.value) || 1,
+                status: statusSelect.value
             };
 
             if (!updatedData.name) {
